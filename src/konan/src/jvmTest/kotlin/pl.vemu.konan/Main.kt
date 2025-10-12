@@ -1,3 +1,5 @@
+package pl.vemu.konan
+
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
