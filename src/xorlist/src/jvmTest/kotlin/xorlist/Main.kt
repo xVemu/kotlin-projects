@@ -1,4 +1,4 @@
-package pl.vemu.konan
+package pl.vemu.xorlist
 
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test

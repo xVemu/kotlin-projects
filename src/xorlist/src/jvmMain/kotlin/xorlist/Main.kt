@@ -1,4 +1,4 @@
-package pl.vemu.konan
+package pl.vemu.xorlist
 
 fun main() {
     print("test pl.vemu.konan.main")

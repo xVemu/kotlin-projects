@@ -19,5 +19,4 @@ plugins {
 
 rootProject.name = "kotlin-small-projects"
 
-
-include("src:konan")
+include("src:xorlist")
