@@ -2,28 +2,14 @@
 
 import kotlinx.cinterop.*
 
-class XorLinkedListIterator : MutableIterator<Node> {
+class XorLinkedList : MutableIterable<Node> {
 
     private var last = 0UL
-
     private var first = 0UL
 
-    private var currentPointer = 0UL
-    private var previousPointer = 0UL
-
-    override fun next(): Node {
-        val toReturn = currentPointer.toNode()
-
-        // Can't use .toPointer() instead, because then it creates a different pointer.
-        val temp = currentPointer
-
-        currentPointer = toReturn bothXor previousPointer
-        previousPointer = temp
-
-        return toReturn
+    override fun iterator(): MutableIterator<Node> {
+        return XorLinkedListIterator(first)
     }
-
-    override fun hasNext() = currentPointer != 0UL
 
     fun add(i: Int) {
         val newItem = Node(i)
@@ -31,7 +17,6 @@ class XorLinkedListIterator : MutableIterator<Node> {
         if (last == 0UL) {
             last = newItem.toPointer()
             first = last
-            currentPointer = first
 
             return
         }
@@ -49,29 +34,51 @@ class XorLinkedListIterator : MutableIterator<Node> {
         previousItem.both = previousItem bothXor last
     }
 
-    override fun remove() {
-        if (last == 0UL) return
+    fun addAll(vararg items: Int) = items.forEach(::add)
 
-        // It means there is only one item in the list.
-        if (first == last) {
-            first.toRef().dispose()
+    inner class XorLinkedListIterator(firstPointer: ULong) : MutableIterator<Node> {
 
-            first = 0UL
-            last = 0UL
-            currentPointer = 0UL
-            previousPointer = 0UL
+        private var currentPointer = firstPointer
+        private var previousPointer = 0UL
 
-            return
+        override fun next(): Node {
+            val toReturn = currentPointer.toNode()
+
+            // Can't use .toPointer() instead, because then it creates a different pointer.
+            val temp = currentPointer
+
+            currentPointer = toReturn bothXor previousPointer
+            previousPointer = temp
+
+            return toReturn
         }
 
-        val oldHead = last
-        // `Both` of old head points to 2nd last item.
-        last = oldHead.toNode().both
-        last.toNode().apply {
-            both = bothXor(oldHead)
-        }
+        override fun hasNext() = currentPointer != 0UL
 
-        oldHead.toRef().dispose()
+        override fun remove() {
+            if (last == 0UL) return
+
+            // It means there is only one item in the list.
+            if (first == last) {
+                first.toRef().dispose()
+
+                first = 0UL
+                last = 0UL
+                currentPointer = 0UL
+                previousPointer = 0UL
+
+                return
+            }
+
+            val oldHead = last
+            // `Both` of old head points to 2nd last item.
+            last = oldHead.toNode().both
+            last.toNode().apply {
+                both = bothXor(oldHead)
+            }
+
+            oldHead.toRef().dispose()
+        }
     }
 }
 
@@ -95,12 +102,15 @@ fun ULong.toOpaquePointer(): COpaquePointer = this.toLong().toCPointer()!!
 
 @OptIn(ExperimentalForeignApi::class)
 fun main() {
-    val iterator = XorLinkedListIterator()
-    iterator.add(1)
-    iterator.add(2)
-    iterator.add(3)
+    val list = XorLinkedList()
 
-    iterator.forEach {
+    list.addAll(1, 2, 3)
+
+    list.forEach {
+        println("value = ${it.value}")
+    }
+
+    list.forEach {
         println("value = ${it.value}")
     }
 }
