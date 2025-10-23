@@ -79,3 +79,56 @@ class NodeIterator {
         }
     }
 }
+
+class MutableNodeIterator {
+    @Test
+    fun `should remove last item`() {
+        val iterator = XorLinkedListIterator()
+
+        iterator.add(1)
+        iterator.add(2)
+        iterator.add(3)
+
+        iterator.remove()
+
+        iterator.next().value shouldBe 1
+        iterator.next().value shouldBe 2
+        iterator.shouldNotHaveNext()
+    }
+
+    @Test
+    fun `should remove first item`() {
+        val iterator = XorLinkedListIterator()
+
+        iterator.add(1)
+
+        iterator.remove()
+        iterator.remove()
+        iterator.remove()
+
+        iterator.shouldNotHaveNext()
+    }
+
+    @Test
+    fun `iterate then remove then iterate`() {
+        val iterator = XorLinkedListIterator()
+
+        (0..10).forEach {
+            iterator.add(it)
+        }
+
+        iterator.next().value shouldBe 0
+        iterator.next().value shouldBe 1
+        iterator.next().value shouldBe 2
+        iterator.next().value shouldBe 3
+        iterator.next().value shouldBe 4
+        iterator.remove()
+        iterator.remove()
+        iterator.remove()
+        iterator.remove()
+        iterator.remove()
+        iterator.next().value shouldBe 5
+
+        iterator.shouldNotHaveNext()
+    }
+}

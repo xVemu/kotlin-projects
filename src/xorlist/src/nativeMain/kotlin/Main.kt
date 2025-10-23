@@ -2,7 +2,7 @@
 
 import kotlinx.cinterop.*
 
-class XorLinkedListIterator : Iterator<Node> {
+class XorLinkedListIterator : MutableIterator<Node> {
 
     private var last = 0UL
 
@@ -48,6 +48,31 @@ class XorLinkedListIterator : Iterator<Node> {
         // Now it sets `both` of previous item to xored new item and second previous item.
         previousItem.both = previousItem bothXor last
     }
+
+    override fun remove() {
+        if (last == 0UL) return
+
+        // It means there is only one item in the list.
+        if (first == last) {
+            first.toRef().dispose()
+
+            first = 0UL
+            last = 0UL
+            currentPointer = 0UL
+            previousPointer = 0UL
+
+            return
+        }
+
+        val oldHead = last
+        // `Both` of old head points to 2nd last item.
+        last = oldHead.toNode().both
+        last.toNode().apply {
+            both = bothXor(oldHead)
+        }
+
+        oldHead.toRef().dispose()
+    }
 }
 
 /** @property both XORed address of next and previous nodes. */
@@ -61,6 +86,8 @@ data class Node(val value: Int, var both: ULong = 0UL) {
 
     override fun toString() = "Node(value=$value, both=0x${both.toString(16)})"
 }
+
+private fun ULong.toRef() = toOpaquePointer().asStableRef<Node>()
 
 private fun ULong.toNode() = toOpaquePointer().asStableRef<Node>().get()
 
