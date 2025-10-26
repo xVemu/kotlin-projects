@@ -106,29 +106,34 @@ class MutableNodeIterator {
     }
 
     @Test
-    fun `should remove last item`() {
+    fun `should remove current item`() {
         list.addAll(listOf(1, 2, 3))
 
         val iterator = list.iterator()
 
-        iterator.remove()
-
         iterator.next() shouldBe 1
+        iterator.remove()
         iterator.next() shouldBe 2
-        iterator.shouldNotHaveNext()
+
+        val secondIterator = list.iterator()
+
+        secondIterator.next() shouldBe 2
+        secondIterator.next() shouldBe 3
+        secondIterator.shouldNotHaveNext()
     }
 
     @Test
-    fun `should remove first item`() {
+    fun `should remove single item`() {
         list.add(1)
 
         val iterator = list.iterator()
 
-        iterator.remove()
-        iterator.remove()
+        iterator.next()
         iterator.remove()
 
-        iterator.shouldNotHaveNext()
+        val secondIterator = list.iterator()
+
+        secondIterator.shouldNotHaveNext()
     }
 
     @Test
@@ -141,29 +146,33 @@ class MutableNodeIterator {
             next() shouldBe 2
             next() shouldBe 3
             next() shouldBe 4
-
             remove()
-            remove()
-            remove()
-            remove()
-            remove()
-
             next() shouldBe 5
+            remove()
+            next() shouldBe 6
+            remove()
+            next() shouldBe 7
+            remove()
+            next() shouldBe 8
+            remove()
 
-            shouldNotHaveNext()
+            next() shouldBe 9
+            next() shouldBe 10
         }
+
+        list.shouldContainExactly(0, 1, 2, 3, 9, 10)
     }
 
     @Test
     fun `should remove item in the middle`() {
         list.addAll(listOf(1, 2, 3, 4, 5))
 
-        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+        val iterator = list.iterator()
 
         iterator.next() shouldBe 1
         iterator.next() shouldBe 2
         iterator.next() shouldBe 3
-        iterator.removePrevious()
+        iterator.remove()
 
         val secondIterator = list.iterator()
 
@@ -173,29 +182,13 @@ class MutableNodeIterator {
     }
 
     @Test
-    fun `should remove single item`() {
-        list.add(1)
-
-        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
-
-        iterator.next() shouldBe 1
-        iterator.removePrevious()
-
-        iterator.shouldNotHaveNext()
-
-        list.shouldBeEmpty()
-
-        list.iterator().shouldNotHaveNext()
-    }
-
-    @Test
     fun `remove first item`() {
         list.addAll(listOf(1, 2, 3))
 
-        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+        val iterator = list.iterator()
 
         iterator.next() shouldBe 1
-        iterator.removePrevious()
+        iterator.remove()
 
         val secondIterator = list.iterator()
 
@@ -208,18 +201,41 @@ class MutableNodeIterator {
     fun `remove last item`() {
         list.addAll(listOf(1, 2, 3))
 
-        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+        val iterator = list.iterator()
 
         iterator.next() shouldBe 1
         iterator.next() shouldBe 2
         iterator.next() shouldBe 3
-        iterator.removePrevious()
+        iterator.remove()
 
         val secondIterator = list.iterator()
 
         secondIterator.next() shouldBe 1
         secondIterator.next() shouldBe 2
         secondIterator.shouldNotHaveNext()
+    }
+
+    @Test
+    fun `should throw exception when remove in empty iterator`() {
+        val iterator = list.iterator()
+
+        shouldThrow<IllegalStateException> {
+            iterator.remove()
+        }
+    }
+
+    @Test
+    fun `should throw exception when remove twice`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.iterator()
+
+        iterator.next() shouldBe 1
+        iterator.remove()
+
+        shouldThrow<IllegalStateException> {
+            iterator.remove()
+        }
     }
 }
 

@@ -33,36 +33,24 @@ class XorLinkedList<E> : MutableCollection<E> {
 
         override fun hasNext() = currentPointer != 0UL
 
-        // TODO should be removePrevious
+        // Removes current item.
         override fun remove() {
+            // throw IllegalStateException()
             if (last == 0UL) return
             count--
 
             // It means there is only one item in the list.
             if (first == last) return removeWhenSingle()
 
-            val oldLast = last
-            // `Both` of old last points to 2nd last item.
-            last = oldLast.toNode<E>().both
-            last.toNode<E>().apply {
-                both = bothXor(oldLast)
+            if (previousPointer == last) {
+                last = removeEnding(last)
+                return
             }
 
-            oldLast.toRef<E>().dispose()
-        }
-
-        fun removePrevious() {
-            if (last == 0UL) return
-            count--
-
-            // It means there is only one item in the list.
-            if (first == last) return removeWhenSingle()
-
-            if (previousPointer == last)
-                return remove()
-
-            if (previousPointer == first)
-                return removeFirst()
+            if (previousPointer == first) {
+                first = removeEnding(first)
+                return
+            }
 
             val previous2Pointer = previousPointer.toNode<E>().bothXor(currentPointer)
             val previous2Node = previous2Pointer.toNode<E>()
@@ -79,16 +67,20 @@ class XorLinkedList<E> : MutableCollection<E> {
             previousPointer = previous2Pointer
         }
 
-        private fun removeFirst() {
-            val oldFirst = first
-            // `Both` of old first points to 2nd first item.
-            first = oldFirst.toNode<E>().both
-            first.toNode<E>().apply {
-                both = bothXor(oldFirst)
+        /** @return address to new ending */
+        private fun removeEnding(old: ULong): ULong {
+            // `Both` of old points to next/previous item.
+            val new = old.toNode<E>().both
+
+            new.toNode<E>().apply {
+                // Removes old pointer from xorred address
+                both = bothXor(old)
             }
 
-            oldFirst.toRef<E>().dispose()
-            currentPointer = first
+            old.toRef<E>().dispose()
+            previousPointer = new
+
+            return new
         }
 
         private fun removeWhenSingle() {
@@ -156,13 +148,13 @@ class XorLinkedList<E> : MutableCollection<E> {
     }
 
     override fun remove(element: E): Boolean {
-        val iterator = iterator() as XorLinkedListIterator
+        val iterator = iterator()
 
         iterator.forEach {
             if (it != element)
                 return@forEach
 
-            iterator.removePrevious()
+            iterator.remove()
             return true
         }
 
@@ -170,14 +162,14 @@ class XorLinkedList<E> : MutableCollection<E> {
     }
 
     override fun removeAll(elements: Collection<E>): Boolean {
-        val iterator = iterator() as XorLinkedListIterator
+        val iterator = iterator()
         var modified = false
 
         iterator.forEach {
             if (!elements.contains(it))
                 return@forEach
 
-            iterator.removePrevious()
+            iterator.remove()
             modified = true
         }
 
@@ -185,14 +177,14 @@ class XorLinkedList<E> : MutableCollection<E> {
     }
 
     override fun retainAll(elements: Collection<E>): Boolean {
-        val iterator = iterator() as XorLinkedListIterator
+        val iterator = iterator()
         var modified = false
 
         iterator.forEach {
             if (elements.contains(it))
                 return@forEach
 
-            iterator.removePrevious()
+            iterator.remove()
             modified = true
         }
 
