@@ -16,9 +16,11 @@ class XorLinkedList<E> : MutableCollection<E> {
 
         private var currentPointer = firstPointer
         private var previousPointer = 0UL
+        private var calledNext = false
 
         override fun next(): E {
             if (!hasNext()) throw NoSuchElementException()
+            calledNext = true
 
             val toReturn = currentPointer.toNode<E>()
 
@@ -35,61 +37,35 @@ class XorLinkedList<E> : MutableCollection<E> {
 
         // Removes current item.
         override fun remove() {
-            // throw IllegalStateException()
-            if (last == 0UL) return
+            // Required to align with spec. I'm not happy with this solution.
+            if (!calledNext) throw IllegalStateException()
+            calledNext = false
+
             count--
 
             // It means there is only one item in the list.
-            if (first == last) return removeWhenSingle()
-
-            if (previousPointer == last) {
-                last = removeEnding(last)
-                return
-            }
-
-            if (previousPointer == first) {
-                first = removeEnding(first)
-                return
-            }
+            // Code below automatically sets first, last, currentPointer and previousPointer to 0.
+            if (first == last) currentPointer = 0UL
 
             val previous2Pointer = previousPointer.toNode<E>().bothXor(currentPointer)
-            val previous2Node = previous2Pointer.toNode<E>()
+            // Null if previousPointer is first item
+            val previous2Node = previous2Pointer.takeUnless { it == 0UL }?.toNode<E>()
             val nextPointer = currentPointer
-            val nextNode = nextPointer.toNode<E>()
+            // Null if previousPointer is last item
+            val nextNode = nextPointer.takeUnless { it == 0UL }?.toNode<E>()
 
             // Removes previousPointer and adds nextPointer to xorred address
-            previous2Node.both = previous2Node.both xor previousPointer xor nextPointer
+            previous2Node?.both = previous2Node.both xor previousPointer xor nextPointer
             // Removes previousPointer and adds previous2Pointer to xorred address
-            nextNode.both = previous2Pointer xor previousPointer xor nextNode.both
+            nextNode?.both = previous2Pointer xor previousPointer xor nextNode.both
+
+            // Sets first
+            if (previous2Node == null) first = nextPointer
+            if (nextNode == null) last = previous2Pointer
 
             previousPointer.toRef<E>().dispose()
 
             previousPointer = previous2Pointer
-        }
-
-        /** @return address to new ending */
-        private fun removeEnding(old: ULong): ULong {
-            // `Both` of old points to next/previous item.
-            val new = old.toNode<E>().both
-
-            new.toNode<E>().apply {
-                // Removes old pointer from xorred address
-                both = bothXor(old)
-            }
-
-            old.toRef<E>().dispose()
-            previousPointer = new
-
-            return new
-        }
-
-        private fun removeWhenSingle() {
-            first.toRef<E>().dispose()
-
-            first = 0UL
-            last = 0UL
-            currentPointer = 0UL
-            previousPointer = 0UL
         }
     }
 
@@ -144,7 +120,9 @@ class XorLinkedList<E> : MutableCollection<E> {
 
     override fun clear() {
         val iterator = iterator()
-        while (iterator.hasNext()) iterator.remove()
+        iterator.forEach { _ ->
+            iterator.remove()
+        }
     }
 
     override fun remove(element: E): Boolean {
