@@ -8,7 +8,7 @@ class NodeIterator {
 
     @Test
     fun `should not iterate with 0 items`() {
-        val iterator = XorLinkedList().iterator()
+        val iterator = XorLinkedList<Int>().iterator()
 
         iterator.shouldNotHaveNext()
 
@@ -24,7 +24,7 @@ class NodeIterator {
 
     @Test
     fun `should iterate with 1 item`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
         list.add(1)
 
         val iterator = list.iterator()
@@ -42,9 +42,9 @@ class NodeIterator {
 
     @Test
     fun `should iterate through all items`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
 
-        list.addAll(*IntArray(11) { it })
+        list.addAll(*Array(11) { it })
 
         val iterator = list.iterator()
 
@@ -59,21 +59,21 @@ class NodeIterator {
 
     @Test
     fun `add then iterate then add then iterate`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
         list.addAll(1, 2, 3)
 
         list.iterator().apply {
             shouldHaveNext()
-            next().value shouldBe 1
+            next() shouldBe 1
             shouldHaveNext()
 
             list.addAll(4, 5, 6)
 
-            next().value shouldBe 2
-            next().value shouldBe 3
-            next().value shouldBe 4
-            next().value shouldBe 5
-            next().value shouldBe 6
+            next() shouldBe 2
+            next() shouldBe 3
+            next() shouldBe 4
+            next() shouldBe 5
+            next() shouldBe 6
             shouldNotHaveNext()
         }
     }
@@ -82,7 +82,7 @@ class NodeIterator {
 class MutableNodeIterator {
     @Test
     fun `should remove last item`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
 
         list.addAll(1, 2, 3)
 
@@ -90,14 +90,14 @@ class MutableNodeIterator {
 
         iterator.remove()
 
-        iterator.next().value shouldBe 1
-        iterator.next().value shouldBe 2
+        iterator.next() shouldBe 1
+        iterator.next() shouldBe 2
         iterator.shouldNotHaveNext()
     }
 
     @Test
     fun `should remove first item`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
 
         list.add(1)
 
@@ -112,16 +112,16 @@ class MutableNodeIterator {
 
     @Test
     fun `iterate then remove then iterate`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
 
-        list.addAll(*IntArray(10 + 1) { it })
+        list.addAll(*Array(10 + 1) { it })
 
         list.iterator().apply {
-            next().value shouldBe 0
-            next().value shouldBe 1
-            next().value shouldBe 2
-            next().value shouldBe 3
-            next().value shouldBe 4
+            next() shouldBe 0
+            next() shouldBe 1
+            next() shouldBe 2
+            next() shouldBe 3
+            next() shouldBe 4
 
             remove()
             remove()
@@ -129,7 +129,7 @@ class MutableNodeIterator {
             remove()
             remove()
 
-            next().value shouldBe 5
+            next() shouldBe 5
 
             shouldNotHaveNext()
         }
@@ -139,11 +139,11 @@ class MutableNodeIterator {
 class NodeList {
     @Test
     fun `should add and iterate`() {
-        val list = XorLinkedList()
+        val list = XorLinkedList<Int>()
 
         list.addAll(1, 2, 3)
 
-        val result = list.fold(0) { acc, node -> acc + node.value }
+        val result = list.fold(0) { acc, node -> acc + node }
 
         result shouldBe 6
     }
