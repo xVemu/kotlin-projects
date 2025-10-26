@@ -1,3 +1,4 @@
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -82,6 +83,15 @@ class NodeIterator {
             next() shouldBe 5
             next() shouldBe 6
             shouldNotHaveNext()
+        }
+    }
+
+    @Test
+    fun `should throw exception when next in empty iterator`() {
+        val iterator = list.iterator()
+
+        shouldThrow<NoSuchElementException> {
+            iterator.next()
         }
     }
 }

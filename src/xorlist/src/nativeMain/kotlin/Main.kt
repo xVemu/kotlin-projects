@@ -18,6 +18,8 @@ class XorLinkedList<E> : MutableCollection<E> {
         private var previousPointer = 0UL
 
         override fun next(): E {
+            if (!hasNext()) throw NoSuchElementException()
+
             val toReturn = currentPointer.toNode<E>()
 
             // Can't use .toPointer() instead, because then it creates a different pointer.
