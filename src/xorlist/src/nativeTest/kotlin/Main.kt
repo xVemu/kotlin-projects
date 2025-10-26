@@ -1,14 +1,25 @@
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.iterator.shouldHaveNext
 import io.kotest.matchers.iterator.shouldNotHaveNext
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 @Suppress("ForEachParameterNotUsed")
 class NodeIterator {
 
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
     @Test
     fun `should not iterate with 0 items`() {
-        val iterator = XorLinkedList<Int>().iterator()
+        val iterator = list.iterator()
 
         iterator.shouldNotHaveNext()
 
@@ -24,7 +35,6 @@ class NodeIterator {
 
     @Test
     fun `should iterate with 1 item`() {
-        val list = XorLinkedList<Int>()
         list.add(1)
 
         val iterator = list.iterator()
@@ -42,9 +52,7 @@ class NodeIterator {
 
     @Test
     fun `should iterate through all items`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(*Array(11) { it })
+        list.addAll(Array(11) { it })
 
         val iterator = list.iterator()
 
@@ -59,15 +67,14 @@ class NodeIterator {
 
     @Test
     fun `add then iterate then add then iterate`() {
-        val list = XorLinkedList<Int>()
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         list.iterator().apply {
             shouldHaveNext()
             next() shouldBe 1
             shouldHaveNext()
 
-            list.addAll(4, 5, 6)
+            list.addAll(listOf(4, 5, 6))
 
             next() shouldBe 2
             next() shouldBe 3
@@ -80,11 +87,17 @@ class NodeIterator {
 }
 
 class MutableNodeIterator {
+
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
     @Test
     fun `should remove last item`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         val iterator = list.iterator()
 
@@ -97,8 +110,6 @@ class MutableNodeIterator {
 
     @Test
     fun `should remove first item`() {
-        val list = XorLinkedList<Int>()
-
         list.add(1)
 
         val iterator = list.iterator()
@@ -112,9 +123,7 @@ class MutableNodeIterator {
 
     @Test
     fun `iterate then remove then iterate`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(*Array(10 + 1) { it })
+        list.addAll(Array(10 + 1) { it })
 
         list.iterator().apply {
             next() shouldBe 0
@@ -134,14 +143,88 @@ class MutableNodeIterator {
             shouldNotHaveNext()
         }
     }
+
+    @Test
+    fun `should remove item in the middle`() {
+        list.addAll(listOf(1, 2, 3, 4, 5))
+
+        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+
+        iterator.next() shouldBe 1
+        iterator.next() shouldBe 2
+        iterator.next() shouldBe 3
+        iterator.removePrevious()
+
+        val secondIterator = list.iterator()
+
+        secondIterator.next() shouldBe 1
+        secondIterator.next() shouldBe 2
+        secondIterator.next() shouldBe 4
+    }
+
+    @Test
+    fun `should remove single item`() {
+        list.add(1)
+
+        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+
+        iterator.next() shouldBe 1
+        iterator.removePrevious()
+
+        iterator.shouldNotHaveNext()
+
+        list.shouldBeEmpty()
+
+        list.iterator().shouldNotHaveNext()
+    }
+
+    @Test
+    fun `remove first item`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+
+        iterator.next() shouldBe 1
+        iterator.removePrevious()
+
+        val secondIterator = list.iterator()
+
+        secondIterator.next() shouldBe 2
+        secondIterator.next() shouldBe 3
+        secondIterator.shouldNotHaveNext()
+    }
+
+    @Test
+    fun `remove last item`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.iterator() as XorLinkedList.XorLinkedListIterator
+
+        iterator.next() shouldBe 1
+        iterator.next() shouldBe 2
+        iterator.next() shouldBe 3
+        iterator.removePrevious()
+
+        val secondIterator = list.iterator()
+
+        secondIterator.next() shouldBe 1
+        secondIterator.next() shouldBe 2
+        secondIterator.shouldNotHaveNext()
+    }
 }
 
 class NodeList {
+
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
     @Test
     fun `should add and iterate`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         val result = list.fold(0) { acc, node -> acc + node }
 
@@ -150,69 +233,121 @@ class NodeList {
 }
 
 class NodeCollection {
+
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
     @Test
     fun `should contain`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         list.contains(1) shouldBe true
     }
 
     @Test
     fun `should not contain`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         list.contains(4) shouldBe false
     }
 
     @Test
     fun `should contain all`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
         list.containsAll(listOf(1, 2, 3)) shouldBe true
     }
 
     @Test
     fun `should not contain all`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
         list.containsAll(listOf(1, 2, 3, 4)) shouldBe false
     }
 
     @Test
     fun `should be empty`() {
-        val list = XorLinkedList<Int>()
-
         list.isEmpty() shouldBe true
     }
 
     @Test
     fun `should not be empty`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         list.isEmpty() shouldBe false
     }
 
     @Test
     fun `size should be correct`() {
-        val list = XorLinkedList<Int>()
-
-        list.addAll(1, 2, 3)
+        list.addAll(listOf(1, 2, 3))
 
         list.size shouldBe 3
     }
 
     @Test
     fun `size should be zero`() {
-        val list = XorLinkedList<Int>()
-
         list.size shouldBe 0
+    }
+}
+
+class NodeMutableCollection {
+
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
+    @Test
+    fun `should add`() {
+        list.add(2) shouldBe true
+    }
+
+    @Test
+    fun `should add all`() {
+        list.addAll(listOf(1, 2, 3)) shouldBe true
+    }
+
+    @Test
+    fun `should clear`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.clear()
+
+        list.shouldBeEmpty()
+
+        list.iterator().shouldNotHaveNext()
+    }
+
+    @Test
+    fun `should remove`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.remove(2) shouldBe true
+        list.remove(4) shouldBe false
+        list.shouldHaveSize(2)
+
+        list.shouldContainExactly(1, 3)
+    }
+
+    @Test
+    fun `should remove all`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.removeAll(listOf(2, 3))
+
+        list.single() shouldBe 1
+    }
+
+    @Test
+    fun `should retain all`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.retainAll(listOf(1, 2))
+
+        list.shouldContainExactly(1, 2)
     }
 }
