@@ -148,3 +148,71 @@ class NodeList {
         result shouldBe 6
     }
 }
+
+class NodeCollection {
+    @Test
+    fun `should contain`() {
+        val list = XorLinkedList<Int>()
+
+        list.addAll(1, 2, 3)
+
+        list.contains(1) shouldBe true
+    }
+
+    @Test
+    fun `should not contain`() {
+        val list = XorLinkedList<Int>()
+
+        list.addAll(1, 2, 3)
+
+        list.contains(4) shouldBe false
+    }
+
+    @Test
+    fun `should contain all`() {
+        val list = XorLinkedList<Int>()
+
+        list.addAll(1, 2, 3)
+        list.containsAll(listOf(1, 2, 3)) shouldBe true
+    }
+
+    @Test
+    fun `should not contain all`() {
+        val list = XorLinkedList<Int>()
+
+        list.addAll(1, 2, 3)
+        list.containsAll(listOf(1, 2, 3, 4)) shouldBe false
+    }
+
+    @Test
+    fun `should be empty`() {
+        val list = XorLinkedList<Int>()
+
+        list.isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `should not be empty`() {
+        val list = XorLinkedList<Int>()
+
+        list.addAll(1, 2, 3)
+
+        list.isEmpty() shouldBe false
+    }
+
+    @Test
+    fun `size should be correct`() {
+        val list = XorLinkedList<Int>()
+
+        list.addAll(1, 2, 3)
+
+        list.size shouldBe 3
+    }
+
+    @Test
+    fun `size should be zero`() {
+        val list = XorLinkedList<Int>()
+
+        list.size shouldBe 0
+    }
+}

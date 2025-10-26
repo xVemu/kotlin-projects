@@ -2,10 +2,11 @@
 
 import kotlinx.cinterop.*
 
-class XorLinkedList<E> : MutableIterable<E> {
+class XorLinkedList<E> : Collection<E> {
 
     private var last = 0UL
     private var first = 0UL
+    private var count = 0
 
     override fun iterator(): MutableIterator<E> {
         return XorLinkedListIterator(first)
@@ -13,6 +14,7 @@ class XorLinkedList<E> : MutableIterable<E> {
 
     fun add(i: E) {
         val newItem = Node(i)
+        count++
 
         if (last == 0UL) {
             last = newItem.toPointer()
@@ -57,6 +59,7 @@ class XorLinkedList<E> : MutableIterable<E> {
 
         override fun remove() {
             if (last == 0UL) return
+            count--
 
             // It means there is only one item in the list.
             if (first == last) {
@@ -80,6 +83,27 @@ class XorLinkedList<E> : MutableIterable<E> {
             oldHead.toRef<E>().dispose()
         }
     }
+
+    override fun contains(element: E): Boolean {
+        iterator().forEach {
+            if (it == element) return true
+        }
+
+        return false
+    }
+
+    override fun containsAll(elements: Collection<E>): Boolean {
+        elements.forEach {
+            if (!contains(it)) return false
+        }
+
+        return true
+    }
+
+    override fun isEmpty() = size == 0
+
+    override val size
+        get() = count
 }
 
 /** @property both XORed address of next and previous nodes. */
