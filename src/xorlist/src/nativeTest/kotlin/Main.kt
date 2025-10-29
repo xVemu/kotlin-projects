@@ -377,3 +377,141 @@ class NodeMutableCollection {
         list.shouldContainExactly(1, 2)
     }
 }
+
+class NodeListIterator {
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
+    @Test
+    fun `should has previous`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.iterator() as ListIterator<*>
+        iterator.next()
+        iterator.next()
+
+        iterator.hasPrevious() shouldBe true
+    }
+
+    @Test
+    fun `should not iterate with 0 items`() {
+        val iterator = list.iterator() as ListIterator<*>
+
+        iterator.hasPrevious() shouldBe false
+
+        var i = 0
+
+        while (iterator.hasPrevious()) {
+            i++
+        }
+
+        i shouldBe 0
+        iterator.hasPrevious() shouldBe false
+    }
+
+    @Test
+    fun `should throw exception when previous in empty iterator`() {
+        val iterator = list.iterator() as ListIterator<*>
+
+        shouldThrow<NoSuchElementException> {
+            iterator.previous()
+        }
+    }
+
+    @Test
+    fun `should return previous item`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.iterator() as ListIterator<*>
+
+        iterator.next()
+        iterator.next()
+
+        iterator.previous() shouldBe 2
+        iterator.previous() shouldBe 1
+    }
+
+    @Test
+    fun `should return previous item on last item`() {
+        list.addAll(listOf(1, 2))
+
+        val iterator = list.iterator() as ListIterator<*>
+
+        iterator.next()
+        iterator.next()
+
+        iterator.previous() shouldBe 2
+        iterator.previous() shouldBe 1
+    }
+
+    @Test
+    fun `nextIndex should be zero at start`() {
+        list.add(2)
+        val iterator = list.iterator() as ListIterator<*>
+
+        iterator.nextIndex() shouldBe 0
+    }
+
+    @Test
+    fun `previousIndex should be -1 at start`() {
+        list.add(2)
+        val iterator = list.iterator() as ListIterator<*>
+
+        iterator.previousIndex() shouldBe -1
+    }
+
+    @Test
+    fun `nextIndex should be one after next`() {
+        list.add(1)
+
+        val iterator = list.iterator() as ListIterator<*>
+        iterator.next()
+
+        iterator.nextIndex() shouldBe 1
+    }
+
+    @Test
+    fun `previousIndex should be zero before next`() {
+        list.add(1)
+
+        val iterator = list.iterator() as ListIterator<*>
+        iterator.next()
+
+        iterator.previousIndex() shouldBe 0
+    }
+
+    @Test
+    fun `nextIndex should decrease on remove`() {
+        list.addAll(listOf(1, 2, 3))
+        val iterator = list.iterator() as ListIterator<*>
+        iterator.next()
+        iterator.next()
+        iterator.nextIndex() shouldBe 2
+        (iterator as MutableIterator<*>).remove()
+        iterator.nextIndex() shouldBe 1
+    }
+
+    @Test
+    fun `nextIndex should decrease on remove first`() {
+        list.addAll(listOf(1, 2, 3))
+        val iterator = list.iterator() as ListIterator<*>
+        iterator.next()
+        iterator.nextIndex() shouldBe 1
+        (iterator as MutableIterator<*>).remove()
+        iterator.nextIndex() shouldBe 0
+    }
+
+    @Test
+    fun `previousIndex should decrease on remove first`() {
+        list.addAll(listOf(1, 2, 3))
+        val iterator = list.iterator() as ListIterator<*>
+        iterator.next()
+        iterator.previousIndex() shouldBe 0
+        (iterator as MutableIterator<*>).remove()
+        iterator.previousIndex() shouldBe -1
+    }
+}

@@ -12,14 +12,16 @@ class XorLinkedList<E> : MutableCollection<E> {
         return XorLinkedListIterator(first)
     }
 
-    inner class XorLinkedListIterator(firstPointer: ULong) : MutableIterator<E> {
+    inner class XorLinkedListIterator(firstPointer: ULong) : ListIterator<E>, MutableIterator<E> {
 
         private var currentPointer = firstPointer
+        private var nextIndex = 0
         private var previousPointer = 0UL
         private var calledNext = false
 
         override fun next(): E {
             if (!hasNext()) throw NoSuchElementException()
+            nextIndex++
             calledNext = true
 
             val toReturn = currentPointer.toNode<E>()
@@ -42,6 +44,7 @@ class XorLinkedList<E> : MutableCollection<E> {
             calledNext = false
 
             count--
+            nextIndex--
 
             // It means there is only one item in the list.
             // Code below automatically sets first, last, currentPointer and previousPointer to 0.
@@ -67,6 +70,28 @@ class XorLinkedList<E> : MutableCollection<E> {
 
             previousPointer = previous2Pointer
         }
+
+        override fun hasPrevious(): Boolean = previousPointer != 0UL
+
+        override fun previous(): E {
+            if (!hasPrevious()) throw NoSuchElementException()
+            nextIndex--
+            calledNext = true
+
+            val toReturn = previousPointer.toNode<E>()
+
+            // Can't use .toPointer() instead, because then it creates a different pointer.
+            val temp = previousPointer
+
+            previousPointer = toReturn bothXor currentPointer
+            currentPointer = temp
+
+            return toReturn.value
+        }
+
+        override fun nextIndex(): Int = nextIndex
+
+        override fun previousIndex(): Int = nextIndex - 1
     }
 
     override fun contains(element: E): Boolean {
