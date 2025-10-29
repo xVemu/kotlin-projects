@@ -24,7 +24,7 @@ class XorLinkedList<E> : MutableCollection<E> {
             nextIndex++
             calledNext = true
 
-            val toReturn = currentPointer.toNode<E>()
+            val toReturn = currentPointer.toNode()
 
             // Can't use .toPointer() instead, because then it creates a different pointer.
             val temp = currentPointer
@@ -50,12 +50,12 @@ class XorLinkedList<E> : MutableCollection<E> {
             // Code below automatically sets first, last, currentPointer and previousPointer to 0.
             if (first == last) currentPointer = 0UL
 
-            val previous2Pointer = previousPointer.toNode<E>().bothXor(currentPointer)
+            val previous2Pointer = previousPointer.toNode().bothXor(currentPointer)
             // Null if previousPointer is first item
-            val previous2Node = previous2Pointer.takeUnless { it == 0UL }?.toNode<E>()
+            val previous2Node = previous2Pointer.takeUnless { it == 0UL }?.toNode()
             val nextPointer = currentPointer
             // Null if previousPointer is last item
-            val nextNode = nextPointer.takeUnless { it == 0UL }?.toNode<E>()
+            val nextNode = nextPointer.takeUnless { it == 0UL }?.toNode()
 
             // Removes previousPointer and adds nextPointer to xorred address
             previous2Node?.both = previous2Node.both xor previousPointer xor nextPointer
@@ -66,7 +66,7 @@ class XorLinkedList<E> : MutableCollection<E> {
             if (previous2Node == null) first = nextPointer
             if (nextNode == null) last = previous2Pointer
 
-            previousPointer.toRef<E>().dispose()
+            previousPointer.toRef().dispose()
 
             previousPointer = previous2Pointer
         }
@@ -78,7 +78,7 @@ class XorLinkedList<E> : MutableCollection<E> {
             nextIndex--
             calledNext = true
 
-            val toReturn = previousPointer.toNode<E>()
+            val toReturn = previousPointer.toNode()
 
             // Can't use .toPointer() instead, because then it creates a different pointer.
             val temp = previousPointer
@@ -126,7 +126,7 @@ class XorLinkedList<E> : MutableCollection<E> {
             return true
         }
 
-        val previousItem = last.toNode<E>()
+        val previousItem = last.toNode()
 
         // `both` of new item points to previous item address.
         newItem.both = last
@@ -193,9 +193,11 @@ class XorLinkedList<E> : MutableCollection<E> {
 
         return modified
     }
-}
 
-// TODO move to class to omit <E>
+    private fun ULong.toRef() = toOpaquePointer().asStableRef<Node<E>>()
+
+    private fun ULong.toNode() = toOpaquePointer().asStableRef<Node<E>>().get()
+}
 
 /** @property both XORed address of next and previous nodes. */
 data class Node<E>(val value: E, var both: ULong = 0UL) {
@@ -209,11 +211,7 @@ data class Node<E>(val value: E, var both: ULong = 0UL) {
     override fun toString() = "Node(value=$value, both=0x${both.toString(16)})"
 }
 
-private fun <E> ULong.toRef() = toOpaquePointer().asStableRef<Node<E>>()
-
-private fun <E> ULong.toNode() = toOpaquePointer().asStableRef<Node<E>>().get()
-
-fun ULong.toOpaquePointer(): COpaquePointer = this.toLong().toCPointer()!!
+private fun ULong.toOpaquePointer(): COpaquePointer = this.toLong().toCPointer()!!
 
 @OptIn(ExperimentalForeignApi::class)
 fun main() {
