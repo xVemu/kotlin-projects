@@ -515,3 +515,117 @@ class NodeListIterator {
         iterator.previousIndex() shouldBe -1
     }
 }
+
+class NodeMutableListIterator {
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
+    @Test
+    fun `should set previous`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+        iterator.next()
+        iterator.next()
+
+        iterator.previous()
+        iterator.set(4)
+
+        list.shouldContainExactly(1, 4, 3)
+    }
+
+    @Test
+    fun `should throw exception when set after remove`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+        iterator.next()
+        iterator.next()
+        iterator.remove()
+
+        shouldThrow<IllegalStateException> {
+            iterator.set(4)
+        }
+    }
+
+    @Test
+    fun `should set next`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+        iterator.next()
+        iterator.next()
+
+        iterator.set(4)
+
+        list.shouldContainExactly(1, 4, 3)
+    }
+
+    @Test
+    fun `add first element`() {
+        val iterator = list.listIterator()
+        iterator.nextIndex() shouldBe 0
+        iterator.previousIndex() shouldBe -1
+
+        iterator.add(1)
+
+        list.shouldContainExactly(1)
+        iterator.nextIndex() shouldBe 1
+        iterator.previousIndex() shouldBe 0
+
+        iterator.add(2)
+
+        list.shouldContainExactly(1, 2)
+    }
+
+    @Test
+    fun `add mid element`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+        iterator.next()
+        iterator.next()
+
+        iterator.nextIndex() shouldBe 2
+        iterator.previousIndex() shouldBe 1
+
+        iterator.add(4)
+        iterator.nextIndex() shouldBe 3
+        iterator.previousIndex() shouldBe 2
+        iterator.next() shouldBe 3
+
+        list.shouldContainExactly(1, 2, 4, 3)
+    }
+
+    @Test
+    fun `previous should return new element`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+
+        iterator.next()
+        iterator.next()
+        iterator.add(4)
+
+        iterator.previous() shouldBe 4
+    }
+
+    @Test
+    fun `add last element`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+
+        iterator.next()
+        iterator.next()
+        iterator.next()
+        iterator.add(4)
+
+        list.size shouldBe 4
+        list.shouldContainExactly(1, 2, 3, 4)
+    }
+}

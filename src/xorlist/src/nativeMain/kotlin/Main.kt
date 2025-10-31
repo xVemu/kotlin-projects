@@ -12,18 +12,18 @@ class XorLinkedList<E> : MutableCollection<E> {
         return XorLinkedListIterator(first)
     }
 
-    inner class XorLinkedListIterator(firstPointer: ULong) : ListIterator<E>, MutableIterator<E> {
+    inner class XorLinkedListIterator(firstPointer: ULong) : MutableListIterator<E> {
 
         private var currentPointer = firstPointer
         private var nextIndex = 0
         private var previousPointer = 0UL
-        private var calledNext = false
+        private var returned = 0UL
 
         override fun next(): E {
             if (!hasNext()) throw NoSuchElementException()
             nextIndex++
-            calledNext = true
 
+            returned = currentPointer
             val toReturn = currentPointer.toNode()
 
             // Can't use .toPointer() instead, because then it creates a different pointer.
@@ -37,11 +37,10 @@ class XorLinkedList<E> : MutableCollection<E> {
 
         override fun hasNext() = currentPointer != 0UL
 
-        // Removes current item.
+        // Removes current item. TODO
         override fun remove() {
-            // Required to align with spec. I'm not happy with this solution.
-            if (!calledNext) throw IllegalStateException()
-            calledNext = false
+            if (returned == 0UL) throw IllegalStateException()
+            returned = 0UL
 
             count--
             nextIndex--
@@ -76,8 +75,8 @@ class XorLinkedList<E> : MutableCollection<E> {
         override fun previous(): E {
             if (!hasPrevious()) throw NoSuchElementException()
             nextIndex--
-            calledNext = true
 
+            returned = previousPointer
             val toReturn = previousPointer.toNode()
 
             // Can't use .toPointer() instead, because then it creates a different pointer.
@@ -92,6 +91,39 @@ class XorLinkedList<E> : MutableCollection<E> {
         override fun nextIndex(): Int = nextIndex
 
         override fun previousIndex(): Int = nextIndex - 1
+
+        override fun add(element: E) {
+            val newItem = Node(element)
+            count++
+            nextIndex++
+
+            if (last == 0UL) {
+                last = newItem.toPointer()
+                first = last
+                previousPointer = last
+
+                return
+            }
+
+            val newPointer = newItem.toPointer()
+            newItem.both = previousPointer xor currentPointer
+
+            previousPointer.takeUnless { it == 0UL }?.toNode()?.let { previousNode ->
+                previousNode.both = previousNode.both xor currentPointer xor newPointer
+            }
+
+            currentPointer.takeUnless { it == 0UL }?.toNode()?.let { currentNode ->
+                currentNode.both = previousPointer xor newPointer xor currentNode.both
+            }
+
+            previousPointer = newPointer
+        }
+
+        override fun set(element: E) {
+            if (returned == 0UL) throw IllegalStateException()
+
+            returned.toNode().value = element
+        }
     }
 
     override fun contains(element: E): Boolean {
@@ -194,13 +226,15 @@ class XorLinkedList<E> : MutableCollection<E> {
         return modified
     }
 
+    fun listIterator() = XorLinkedListIterator(first)
+
     private fun ULong.toRef() = toOpaquePointer().asStableRef<Node<E>>()
 
     private fun ULong.toNode() = toOpaquePointer().asStableRef<Node<E>>().get()
 }
 
 /** @property both XORed address of next and previous nodes. */
-data class Node<E>(val value: E, var both: ULong = 0UL) {
+data class Node<E>(var value: E, var both: ULong = 0UL) {
 
     infix fun bothXor(pointer: ULong): ULong = both xor pointer
 
