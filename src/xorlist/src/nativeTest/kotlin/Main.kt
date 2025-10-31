@@ -628,4 +628,29 @@ class NodeMutableListIterator {
         list.size shouldBe 4
         list.shouldContainExactly(1, 2, 3, 4)
     }
+
+    @Test
+    fun `should remove first previous item`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+        iterator.next()
+        iterator.previous()
+        iterator.remove()
+
+        list.shouldContainExactly(2, 3)
+    }
+
+    @Test
+    fun `should remove previous item`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator()
+        iterator.next()
+        iterator.next()
+        iterator.previous()
+        iterator.remove()
+
+        list.shouldContainExactly(1, 3)
+    }
 }

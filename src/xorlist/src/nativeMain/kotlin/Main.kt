@@ -14,7 +14,7 @@ class XorLinkedList<E> : MutableCollection<E> {
 
     inner class XorLinkedListIterator(firstPointer: ULong) : MutableListIterator<E> {
 
-        private var currentPointer = firstPointer
+        private var nextPointer = firstPointer
         private var nextIndex = 0
         private var previousPointer = 0UL
         private var returned = 0UL
@@ -23,51 +23,58 @@ class XorLinkedList<E> : MutableCollection<E> {
             if (!hasNext()) throw NoSuchElementException()
             nextIndex++
 
-            returned = currentPointer
-            val toReturn = currentPointer.toNode()
+            returned = nextPointer
+            val toReturn = nextPointer.toNode()
 
             // Can't use .toPointer() instead, because then it creates a different pointer.
-            val temp = currentPointer
+            val temp = nextPointer
 
-            currentPointer = toReturn bothXor previousPointer
+            nextPointer = toReturn bothXor previousPointer
             previousPointer = temp
 
             return toReturn.value
         }
 
-        override fun hasNext() = currentPointer != 0UL
+        override fun hasNext() = nextPointer != 0UL
 
-        // Removes current item. TODO
+        // Removes current item.
         override fun remove() {
             if (returned == 0UL) throw IllegalStateException()
-            returned = 0UL
 
             count--
             nextIndex--
 
-            // It means there is only one item in the list.
-            // Code below automatically sets first, last, currentPointer and previousPointer to 0.
-            if (first == last) currentPointer = 0UL
+            val basePointer = returned
+            val baseNode = basePointer.toNode()
 
-            val previous2Pointer = previousPointer.toNode().bothXor(currentPointer)
-            // Null if previousPointer is first item
-            val previous2Node = previous2Pointer.takeUnless { it == 0UL }?.toNode()
-            val nextPointer = currentPointer
-            // Null if previousPointer is last item
-            val nextNode = nextPointer.takeUnless { it == 0UL }?.toNode()
+            // Base cancels previous or next from xor.
+            val sibling1Ptr = previousPointer xor nextPointer xor basePointer
+            // Null if it's the first or last item
+            val sibling1Node = sibling1Ptr.takeUnless { it == 0UL }?.toNode()
 
-            // Removes previousPointer and adds nextPointer to xorred address
-            previous2Node?.both = previous2Node.both xor previousPointer xor nextPointer
-            // Removes previousPointer and adds previous2Pointer to xorred address
-            nextNode?.both = previous2Pointer xor previousPointer xor nextNode.both
+            val sibling2Ptr = baseNode.bothXor(sibling1Ptr)
+            // Null if it's the first or last item
+            val sibling2Node = sibling2Ptr.takeUnless { it == 0UL }?.toNode()
 
-            // Sets first
-            if (previous2Node == null) first = nextPointer
-            if (nextNode == null) last = previous2Pointer
+            // Removes basePointer and adds oppositeSibling to xorred address
+            sibling2Node?.both = sibling2Node.both xor sibling1Ptr xor basePointer
+            sibling1Node?.both = sibling1Node.both xor sibling2Ptr xor basePointer
 
-            previousPointer.toRef().dispose()
+            basePointer.toRef().dispose()
 
-            previousPointer = previous2Pointer
+            // Set new first item
+            if (first == basePointer)
+                first = sibling1Ptr xor sibling2Ptr
+            // Set new last item
+            if (last == basePointer)
+                last = sibling1Ptr xor sibling2Ptr
+
+            if (returned == previousPointer)
+                previousPointer = sibling2Ptr
+            if (returned == nextPointer)
+                nextPointer = sibling2Ptr
+
+            returned = 0UL
         }
 
         override fun hasPrevious(): Boolean = previousPointer != 0UL
@@ -82,8 +89,8 @@ class XorLinkedList<E> : MutableCollection<E> {
             // Can't use .toPointer() instead, because then it creates a different pointer.
             val temp = previousPointer
 
-            previousPointer = toReturn bothXor currentPointer
-            currentPointer = temp
+            previousPointer = toReturn bothXor nextPointer
+            nextPointer = temp
 
             return toReturn.value
         }
@@ -106,13 +113,13 @@ class XorLinkedList<E> : MutableCollection<E> {
             }
 
             val newPointer = newItem.toPointer()
-            newItem.both = previousPointer xor currentPointer
+            newItem.both = previousPointer xor nextPointer
 
             previousPointer.takeUnless { it == 0UL }?.toNode()?.let { previousNode ->
-                previousNode.both = previousNode.both xor currentPointer xor newPointer
+                previousNode.both = previousNode.both xor nextPointer xor newPointer
             }
 
-            currentPointer.takeUnless { it == 0UL }?.toNode()?.let { currentNode ->
+            nextPointer.takeUnless { it == 0UL }?.toNode()?.let { currentNode ->
                 currentNode.both = previousPointer xor newPointer xor currentNode.both
             }
 
