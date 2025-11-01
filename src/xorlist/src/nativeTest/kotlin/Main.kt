@@ -719,3 +719,104 @@ class NodeList {
         iterator.next() shouldBe 2
     }
 }
+
+class NodeMutableList {
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
+    @Test
+    fun `should add at index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.add(1, 4)
+
+        list.shouldContainExactly(1, 4, 2, 3)
+    }
+
+    @Test
+    fun `should throw exception when add at invalid index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        shouldThrow<IndexOutOfBoundsException> {
+            list.add(4, 5)
+        }
+    }
+
+    @Test
+    fun `should add at the end of list`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.add(3, 4)
+
+        list.shouldContainExactly(1, 2, 3, 4)
+    }
+
+    @Test
+    fun `should throw exception when addAll at invalid index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        shouldThrow<IndexOutOfBoundsException> {
+            list.addAll(-1, listOf(4, 5))
+        }
+    }
+
+    @Test
+    fun `should add all at index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.addAll(1, listOf(4, 5))
+
+        list.shouldContainExactly(1, 4, 5, 2, 3)
+    }
+
+    @Test
+    fun `should add all at end`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.addAll(3, listOf(4, 5))
+
+        list.shouldContainExactly(1, 2, 3, 4, 5)
+    }
+
+    @Test
+    fun `should remove at index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.removeAt(1) shouldBe 2
+        list.shouldContainExactly(1, 3)
+    }
+
+    @Test
+    fun `should set at index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.set(1, 4) shouldBe 2
+
+        list.shouldContainExactly(1, 4, 3)
+    }
+
+    @Test
+    fun `change in root list should be visible in sublist`() {
+        list.addAll(listOf(1, 2, 3, 5, 6, 7))
+
+        val sublist = list.subList(2, 4)
+        sublist.shouldContainExactly(3, 5)
+
+        list[2] = 9
+        sublist.shouldContainExactly(9, 5)
+    }
+
+    @Test
+    fun `change in sublist should be visible in root list`() {
+        list.addAll(listOf(1, 2, 3, 5, 6, 7))
+
+        val sublist = list.subList(2, 4)
+        sublist[0] = 9
+
+        list.shouldContainExactly(1, 2, 9, 5, 6, 7)
+    }
+}

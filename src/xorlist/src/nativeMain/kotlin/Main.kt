@@ -2,7 +2,8 @@
 
 import kotlinx.cinterop.*
 
-class XorLinkedList<E> : List<E> {
+// AbstractMutableList implement subList and toString
+class XorLinkedList<E> : MutableList<E>, AbstractMutableList<E>() {
 
     private var last = 0UL
     private var first = 0UL
@@ -158,7 +159,7 @@ class XorLinkedList<E> : List<E> {
     override val size
         get() = count
 
-    /*override*/ fun add(element: E): Boolean {
+    override fun add(element: E): Boolean {
         val newItem = Node(element)
         count++
 
@@ -184,16 +185,16 @@ class XorLinkedList<E> : List<E> {
         return true
     }
 
-    /*override*/ fun addAll(elements: Collection<E>): Boolean = elements.all(::add)
+    override fun addAll(elements: Collection<E>): Boolean = elements.all(::add)
 
-    /*override*/ fun clear() {
+    override fun clear() {
         val iterator = iterator()
         iterator.forEach { _ ->
             iterator.remove()
         }
     }
 
-    /*override*/ fun remove(element: E): Boolean {
+    override fun remove(element: E): Boolean {
         val iterator = iterator()
 
         iterator.forEach {
@@ -207,7 +208,7 @@ class XorLinkedList<E> : List<E> {
         return false
     }
 
-    /*override*/ fun removeAll(elements: Collection<E>): Boolean {
+    override fun removeAll(elements: Collection<E>): Boolean {
         val iterator = iterator()
         var modified = false
 
@@ -222,7 +223,7 @@ class XorLinkedList<E> : List<E> {
         return modified
     }
 
-    /*override*/ fun retainAll(elements: Collection<E>): Boolean {
+    override fun retainAll(elements: Collection<E>): Boolean {
         val iterator = iterator()
         var modified = false
 
@@ -237,11 +238,10 @@ class XorLinkedList<E> : List<E> {
         return modified
     }
 
-    // TODO : ListIterator<E>
-    override fun listIterator() = XorLinkedListIterator(first)
+    override fun listIterator(): MutableListIterator<E> = XorLinkedListIterator(first)
 
-    override fun listIterator(index: Int): ListIterator<E> {
-        if (index !in 0..<size) throw IndexOutOfBoundsException()
+    override fun listIterator(index: Int): MutableListIterator<E> {
+        if (index !in 0..size) throw IndexOutOfBoundsException()
 
         val iterator = XorLinkedListIterator(first)
         repeat(index) { iterator.next() }
@@ -283,8 +283,58 @@ class XorLinkedList<E> : List<E> {
         return -1
     }
 
-    override fun subList(fromIndex: Int, toIndex: Int): List<E> {
-        TODO("Not yet implemented")
+    /*override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> {
+        TODO("Maybe some day, but currently it's too much work and this method it practically useless")
+    }*/
+
+    override fun add(index: Int, element: E) {
+        if (index !in 0..size) throw IndexOutOfBoundsException()
+
+        if (index == size) {
+            add(element)
+            return
+        }
+
+        val iterator = listIterator()
+        repeat(index) { iterator.next() }
+        iterator.add(element)
+    }
+
+    override fun addAll(index: Int, elements: Collection<E>): Boolean {
+        if (index !in 0..size) throw IndexOutOfBoundsException()
+
+        if (index == size) {
+            return addAll(elements)
+        }
+
+        val iterator = listIterator()
+        repeat(index) { iterator.next() }
+        elements.forEach(iterator::add)
+
+        return true
+    }
+
+    override fun removeAt(index: Int): E {
+        if (index !in 0..size) throw IndexOutOfBoundsException()
+
+        val iterator = listIterator()
+        repeat(index) { iterator.next() }
+
+        val returns = iterator.next()
+        iterator.remove()
+
+        return returns
+    }
+
+    override fun set(index: Int, element: E): E {
+        if (index !in 0..size) throw IndexOutOfBoundsException()
+
+        val iterator = listIterator()
+        repeat(index) { iterator.next() }
+        val returns = iterator.next()
+        iterator.set(element)
+
+        return returns
     }
 }
 
