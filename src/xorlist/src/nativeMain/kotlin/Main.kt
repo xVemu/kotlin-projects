@@ -2,20 +2,20 @@
 
 import kotlinx.cinterop.*
 
-class XorLinkedList<E> : MutableCollection<E> {
+class XorLinkedList<E> : List<E> {
 
     private var last = 0UL
     private var first = 0UL
     private var count = 0
 
-    override fun iterator(): MutableIterator<E> {
-        return XorLinkedListIterator(first)
-    }
+    private fun ULong.toRef() = toOpaquePointer().asStableRef<Node<E>>()
 
-    inner class XorLinkedListIterator(firstPointer: ULong) : MutableListIterator<E> {
+    private fun ULong.toNode() = toOpaquePointer().asStableRef<Node<E>>().get()
+
+    inner class XorLinkedListIterator(firstPointer: ULong, initialIndex: Int = 0) : MutableListIterator<E> {
 
         private var nextPointer = firstPointer
-        private var nextIndex = 0
+        private var nextIndex = initialIndex
         private var previousPointer = 0UL
         private var returned = 0UL
 
@@ -133,6 +133,10 @@ class XorLinkedList<E> : MutableCollection<E> {
         }
     }
 
+    override fun iterator(): MutableIterator<E> {
+        return XorLinkedListIterator(first)
+    }
+
     override fun contains(element: E): Boolean {
         iterator().forEach {
             if (it == element) return true
@@ -154,7 +158,7 @@ class XorLinkedList<E> : MutableCollection<E> {
     override val size
         get() = count
 
-    override fun add(element: E): Boolean {
+    /*override*/ fun add(element: E): Boolean {
         val newItem = Node(element)
         count++
 
@@ -180,16 +184,16 @@ class XorLinkedList<E> : MutableCollection<E> {
         return true
     }
 
-    override fun addAll(elements: Collection<E>): Boolean = elements.all(::add)
+    /*override*/ fun addAll(elements: Collection<E>): Boolean = elements.all(::add)
 
-    override fun clear() {
+    /*override*/ fun clear() {
         val iterator = iterator()
         iterator.forEach { _ ->
             iterator.remove()
         }
     }
 
-    override fun remove(element: E): Boolean {
+    /*override*/ fun remove(element: E): Boolean {
         val iterator = iterator()
 
         iterator.forEach {
@@ -203,7 +207,7 @@ class XorLinkedList<E> : MutableCollection<E> {
         return false
     }
 
-    override fun removeAll(elements: Collection<E>): Boolean {
+    /*override*/ fun removeAll(elements: Collection<E>): Boolean {
         val iterator = iterator()
         var modified = false
 
@@ -218,7 +222,7 @@ class XorLinkedList<E> : MutableCollection<E> {
         return modified
     }
 
-    override fun retainAll(elements: Collection<E>): Boolean {
+    /*override*/ fun retainAll(elements: Collection<E>): Boolean {
         val iterator = iterator()
         var modified = false
 
@@ -233,11 +237,55 @@ class XorLinkedList<E> : MutableCollection<E> {
         return modified
     }
 
-    fun listIterator() = XorLinkedListIterator(first)
+    // TODO : ListIterator<E>
+    override fun listIterator() = XorLinkedListIterator(first)
 
-    private fun ULong.toRef() = toOpaquePointer().asStableRef<Node<E>>()
+    override fun listIterator(index: Int): ListIterator<E> {
+        if (index !in 0..<size) throw IndexOutOfBoundsException()
 
-    private fun ULong.toNode() = toOpaquePointer().asStableRef<Node<E>>().get()
+        val iterator = XorLinkedListIterator(first)
+        repeat(index) { iterator.next() }
+
+        return iterator
+    }
+
+    override fun get(index: Int): E {
+        if (index !in 0..<size) throw IndexOutOfBoundsException()
+
+        if (index > size / 2) {
+            val reverseIterator = XorLinkedListIterator(last)
+            repeat(size - index - 1) { reverseIterator.next() }
+            return reverseIterator.next()
+        }
+
+        val iterator = iterator()
+        repeat(index) { iterator.next() }
+        return iterator.next()
+    }
+
+    override fun indexOf(element: E): Int {
+        val iterator = listIterator()
+
+        iterator.forEach { item ->
+            if (item == element) return iterator.previousIndex()
+        }
+
+        return -1
+    }
+
+    override fun lastIndexOf(element: E): Int {
+        val iterator = XorLinkedListIterator(last)
+
+        iterator.forEach { item ->
+            if (item == element) return size - iterator.previousIndex() - 1
+        }
+
+        return -1
+    }
+
+    override fun subList(fromIndex: Int, toIndex: Int): List<E> {
+        TODO("Not yet implemented")
+    }
 }
 
 /** @property both XORed address of next and previous nodes. */

@@ -53,7 +53,7 @@ class NodeIterator {
 
     @Test
     fun `should iterate through all items`() {
-        list.addAll(Array(11) { it })
+        list.addAll(List(11) { it })
 
         val iterator = list.iterator()
 
@@ -138,7 +138,7 @@ class MutableNodeIterator {
 
     @Test
     fun `iterate then remove then iterate`() {
-        list.addAll(Array(10 + 1) { it })
+        list.addAll(List(10 + 1) { it })
 
         list.iterator().apply {
             next() shouldBe 0
@@ -236,25 +236,6 @@ class MutableNodeIterator {
         shouldThrow<IllegalStateException> {
             iterator.remove()
         }
-    }
-}
-
-class NodeList {
-
-    private var list = XorLinkedList<Int>()
-
-    @BeforeTest
-    fun setUp() {
-        list = XorLinkedList()
-    }
-
-    @Test
-    fun `should add and iterate`() {
-        list.addAll(listOf(1, 2, 3))
-
-        val result = list.fold(0) { acc, node -> acc + node }
-
-        result shouldBe 6
     }
 }
 
@@ -652,5 +633,89 @@ class NodeMutableListIterator {
         iterator.remove()
 
         list.shouldContainExactly(1, 3)
+    }
+}
+
+class NodeList {
+    private var list = XorLinkedList<Int>()
+
+    @BeforeTest
+    fun setUp() {
+        list = XorLinkedList()
+    }
+
+    @Test
+    fun `should add and iterate`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val result = list.fold(0) { acc, node -> acc + node }
+
+        result shouldBe 6
+    }
+
+    @Test
+    fun `should get by index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list[0] shouldBe 1
+        list[1] shouldBe 2
+        list[2] shouldBe 3
+    }
+
+    @Test
+    fun `should throw exception when get with invalid index`() {
+        list.addAll(listOf(1, 2, 3))
+
+        shouldThrow<IndexOutOfBoundsException> {
+            list[3]
+        }
+    }
+
+    @Test
+    fun `should find index of item`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.indexOf(1) shouldBe 0
+        list.indexOf(2) shouldBe 1
+        list.indexOf(3) shouldBe 2
+    }
+
+    @Test
+    fun `should return -1 when item not found`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.indexOf(4) shouldBe -1
+    }
+
+    @Test
+    fun `should return last index of item`() {
+        list.addAll(listOf(1, 2, 3, 1))
+
+        list.lastIndexOf(1) shouldBe 3
+        list.lastIndexOf(2) shouldBe 1
+    }
+
+    @Test
+    fun `should return -1 when last item not found`() {
+        list.addAll(listOf(1, 2, 3))
+
+        list.lastIndexOf(4) shouldBe -1
+    }
+
+    @Test
+    fun `should throw exception when index out of bands in listIterator`() {
+        list.addAll(listOf(1, 2, 3))
+
+        shouldThrow<IndexOutOfBoundsException> {
+            list.listIterator(4)
+        }
+    }
+
+    @Test
+    fun `should return correct item if listIterator of index was used`() {
+        list.addAll(listOf(1, 2, 3))
+
+        val iterator = list.listIterator(1)
+        iterator.next() shouldBe 2
     }
 }
