@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="xorlist[native]" type="KonanRunConfiguration" factoryName="KonanApp"
+                   REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false"
+                   WORKING_DIR="file://$PROJECT_DIR$/src/xorlist" PASS_PARENT_ENVS_2="true">
+        <executable TARGET="mingw_x64" TARGET_NAME="native" EXECUTABLE_NAME="xorlist" PROJECT_PREFIX=":src:xorlist:"
+                    IS_TEST="false">
+            <variant NAME="Debug" GRADLE_TASK=":src:xorlist:linkDebugExecutableNative"
+                     FILE="$PROJECT_DIR$/src/xorlist/build/bin/native/debugExecutable/xorlist.exe"
+                     WORKING_DIR="C:\Projects\kotlin-testing\src\xorlist" PROGRAM_PARAMS="">
+                <envs/>
+            </variant>
+            <variant NAME="Release" GRADLE_TASK=":src:xorlist:linkReleaseExecutableNative"
+                     FILE="$PROJECT_DIR$/src/xorlist/build/bin/native/releaseExecutable/xorlist.exe"
+                     WORKING_DIR="C:\Projects\kotlin-testing\src\xorlist" PROGRAM_PARAMS="">
+                <envs/>
+            </variant>
+        </executable>
+        <variant NAME="Debug" GRADLE_TASK=":src:xorlist:linkDebugExecutableNative"
+                 FILE="$PROJECT_DIR$/src/xorlist/build/bin/native/debugExecutable/xorlist.exe"
+                 WORKING_DIR="C:\Projects\kotlin-testing\src\xorlist" PROGRAM_PARAMS="">
+            <envs/>
+        </variant>
+        <method v="2">
+            <option name="com.jetbrains.mpp.KonanBuildTask" enabled="true"/>
+        </method>
+    </configuration>
+</component>
