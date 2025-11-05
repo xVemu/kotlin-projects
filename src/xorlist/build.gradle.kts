@@ -6,9 +6,6 @@ plugins {
 }
 
 kotlin {
-    jvm()
-    jvmToolchain(17)
-
     nativeTarget().apply {
         binaries {
             executable()
@@ -20,15 +17,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotest.assertions.core)
         }
-
-        jvmTest.dependencies {
-            implementation(libs.kotlin.test.junit5)
-        }
     }
-}
-
-tasks.named<Test>("jvmTest") {
-    useJUnitPlatform()
 }
 
 private fun KotlinMultiplatformExtension.nativeTarget(): KotlinNativeTarget {
