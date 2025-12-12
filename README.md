@@ -2,6 +2,7 @@
 
 - [x] [XorLinkedList](./src/xorlist/src/nativeMain/kotlin/Main.kt) — implementation of xor linked list using pointers.
   Tests included.
+- [ ] Call dart from kotlin
 
 # JVM
 
