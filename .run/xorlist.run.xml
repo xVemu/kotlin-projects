@@ -1,13 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="nativeTests" type="Amper.Run">
-    <option name="command" value="test" />
+  <configuration default="false" name="xorlist" type="Amper.Run">
+    <option name="command" value="run" />
     <EXTENSION ID="amper.ktor.run">
       <option name="developmentModeEnabled" value="false" />
     </EXTENSION>
-    <EXTENSION ID="amper.test.command">
-      <modules>
-        <option value="xorlist" />
-      </modules>
+    <EXTENSION ID="amper.run.common">
+      <option name="module" value="xorlist" />
     </EXTENSION>
     <method v="2" />
   </configuration>

@@ -1,0 +1,6 @@
+product: windows/app
+test-dependencies:
+  - $kotlin.test
+  - $libs.kotest.assertions.core
+apply:
+  - ../../common.module-template.yaml
